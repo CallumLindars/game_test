@@ -1,5 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
+#include <math.h>
+#include <stdlib.h>
 
 //----------------------------------------------------------------------------------
 // Defines and Macros
@@ -20,7 +22,9 @@
 #define STAND_HEIGHT     1.0f
 #define BOTTOM_HEIGHT    0.5f
 
-#define NORMALIZE_INPUT  0
+#define FOV             90.0f
+
+#define NORMALIZE_INPUT  1
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -64,10 +68,12 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera fps");
 
+    ToggleBorderlessWindowed();
+
     // Initialize camera variables
     // NOTE: UpdateCameraFPS() takes care of the rest
     Camera camera = { 0 };
-    camera.fovy = 60.0f;
+    camera.fovy = FOV;
     camera.projection = CAMERA_PERSPECTIVE;
     camera.position = (Vector3){
         player.position.x,
@@ -104,16 +110,16 @@ int main(void)
             player.position.z,
         };
 
-        if (player.isGrounded && ((forward != 0) || (sideway != 0)))
+        if (((forward != 0) || (sideway != 0)))
         {
             headTimer += delta*3.0f;
-            walkLerp = Lerp(walkLerp, 1.0f, 10.0f*delta);
-            camera.fovy = Lerp(camera.fovy, 55.0f, 5.0f*delta);
+            walkLerp = Lerp(walkLerp, 0.3f, 10.0f*delta);
+            camera.fovy = Lerp(camera.fovy, fmax(FOV*Vector3Length(player.velocity)*0.07, FOV), 5.0f*delta);
         }
         else
         {
             walkLerp = Lerp(walkLerp, 0.0f, 10.0f*delta);
-            camera.fovy = Lerp(camera.fovy, 60.0f, 5.0f*delta);
+            camera.fovy = Lerp(camera.fovy, FOV, 5.0f*delta);
         }
 
         lean.x = Lerp(lean.x, sideway*0.02f, 10.0f*delta);
